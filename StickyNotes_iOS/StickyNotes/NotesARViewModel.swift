@@ -8,16 +8,27 @@
 import Foundation
 import RealityKit
 import SwiftUI
-import UIKit.UIFont
+
+typealias EntityMap = [String: Entity]
 
 @MainActor class NotesARViewModel: ObservableObject {
     
+    @Published var entityMap: EntityMap = [:]
+    @Published var noteColor = Color.pink
+    @Published var textColor = Color.white
     
+    // Strong refenece, but ok since NotesModel should never be deallocated.
+    var notesModel: NotesModel
     
-    @Published var entities: [Entity] = []
+    init(notesModel: NotesModel) {
+        self.notesModel = notesModel
+        // Register the update callback with the Notes Model
+        self.notesModel.updateEntities = self.updateEntities
+    }
+
+    // Capture the camera content so we can project coordinates for user screen taps
     var cameraContent: RealityViewCameraContent?
 
-    
     // 0.1 meters in x and y space, 0.001 to simulate paper thin depth
     fileprivate struct StickNoteBox {
         static let widthX: Float = 0.1
@@ -25,42 +36,39 @@ import UIKit.UIFont
         static let depthZ: Float = 0.001
     }
     
-    func createEntity(x: CGFloat, y: CGFloat) {
-        // Create a sticky note Anchor
-        let anchor = AnchorEntity()
+    func updateEntities() {
+        var newEntityMap = EntityMap()
+        for note in notesModel.notes {
+            buildEntity(note: note, entityMap: &newEntityMap)
+        }
+        entityMap = newEntityMap
+    }
+    
+    func buildEntity(note: StickyNote, entityMap: inout EntityMap) {
+        
         let noteEntity = Entity()
         let textEntity = Entity()
         
-        let mesh = MeshResource.generateBox(width: StickNoteBox.widthX,
-                                            height: StickNoteBox.heightY,
-                                            depth: StickNoteBox.depthZ)
+        noteEntity.position = [note.position.positionX, note.position.positionY, note.position.positionZ]
+        
+        print("Position: \(noteEntity.position) | Transform: \(noteEntity.transform)")
+        
+        let noteMesh = MeshResource.generateBox(width: StickNoteBox.widthX,
+                                                height: StickNoteBox.heightY,
+                                                depth: StickNoteBox.depthZ)
         // 0.002 meters for text extrusion
-        let textMesh = MeshResource.generateText("Hello World! | (\(self.entities.count)",
+        let textMesh = MeshResource.generateText(note.text,
                                                  extrusionDepth: 0.002,
                                                  font: UIFont.systemFont(ofSize: 0.01),
                                                  containerFrame: CGRect(x: -0.05, y: -0.05, width: 0.1, height: 0.1),
                                                  alignment: .center,
                                                  lineBreakMode: .byWordWrapping)
         
-        let material = SimpleMaterial(color: .systemPink, isMetallic: false)
-        let textMaterial = SimpleMaterial(color: .white, isMetallic: false)
-
-        // x, y, z position in meters (I think)
-        // Seems unclear in the documentation what the position values represent
-        if let result = cameraContent?.ray(through: CGPoint(x: x, y: y),
-                                           in: .local,
-                                           to: .scene)?.origin {
-            anchor.position = result
-            print("Projection result: \(result)")
-        } else {
-            // This will shift new Sticky Notes to the right
-            // A fallback if coordinate projection fails
-            anchor.position = [
-                Float(0.2) * Float(self.entities.count),
-                Float(0.1),
-                Float(0.0)
-            ]
-        }
+        let noteColor = UIColor(red: note.noteColor.red, green: note.noteColor.green, blue: note.noteColor.blue, alpha: 1.0)
+        let noteMaterial = SimpleMaterial(color: noteColor, isMetallic: false)
+        
+        let textColor = UIColor(red: note.textColor.red, green: note.textColor.green, blue: note.textColor.blue, alpha: 1.0)
+        let textMaterial = SimpleMaterial(color: textColor, isMetallic: false)
         
         // This builds the size of the tap target
         let collisionComponent = CollisionComponent(shapes: [
@@ -77,7 +85,7 @@ import UIKit.UIFont
             [
                 collisionComponent,
                 InputTargetComponent(),
-                ModelComponent(mesh: mesh, materials: [material])
+                ModelComponent(mesh: noteMesh, materials: [noteMaterial])
             ]
         )
         
@@ -86,14 +94,25 @@ import UIKit.UIFont
                 ModelComponent(mesh: textMesh, materials: [textMaterial])
             ]
         )
-                                  
-        anchor.addChild(noteEntity)
-        anchor.addChild(textEntity)
-       // anchor.transform = Transform(matrix: )
         
-       // let cameraTransform = parent.transformMatrix(relativeTo: nil)
-       //Preferably something from Leetcode or well known. The place I'm preparing for told me explicitly that studying well known / Leetcode problems easy/medium is best preparation for their Whiteboard Onsite. HasTransform().look(at: , from: , relativeTo: )
+        noteEntity.addChild(textEntity)
+
         // Add to the list of notes the RealityView is rendering
-        entities.append(anchor)
+        entityMap[note.id] = noteEntity
+    }
+    
+    func createEntity(x: CGFloat, y: CGFloat) async throws {
+        
+        // x, y, z position in meters (I think)
+        // Seems unclear in the documentation what the position values represent
+        guard var result = cameraContent?.ray(through: CGPoint(x: x, y: y),
+                                           in: .local,
+                                           to: .scene)?.origin else {
+            // Could do some better error handling here
+            return
+        }
+        // Pushing out the value a little ways on the z-axis for a better user experience
+        result.z -= 0.25
+        try await notesModel.createStickyNote(arSpacePosition: result)
     }
 }

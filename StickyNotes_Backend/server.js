@@ -14,12 +14,20 @@ app.listen(PORT, () => {
 
 // Create a Note Endpoint
 app.post('/notes', (req, res) => {
-    const { text, isComplete } = req.body;
+    const { text,
+        isComplete,
+        position,
+        textColor,
+        noteColor } = req.body;
     
+    console.log(req.body)
     const newNote = {
         id: uuidv4(),
         text,
-        isComplete: Boolean(isComplete)
+        isComplete: isComplete,
+        position: position,
+        textColor: textColor,
+        noteColor: noteColor
     };
     
     notes.push(newNote);

@@ -104,7 +104,7 @@ typealias EntityMap = [String: Entity]
         if note.isComplete {
             let completeEntity = Entity()
             // 0.002 meters for text extrusion
-            let completeMesh = MeshResource.generateText("Completed",
+            let completeMesh = MeshResource.generateText("Complete",
                                                          extrusionDepth: 0.002,
                                                          font: UIFont.systemFont(ofSize: 0.01),
                                                          containerFrame: CGRect(x: -0.05, y: -0.09, width: 0.1, height: 0.1),

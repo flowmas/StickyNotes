@@ -28,7 +28,7 @@ struct RootView: View {
             }
         }
         .onAppear {
-            notesModel.updateNotes()
+            notesModel.getNotes()
         }
     }
 }

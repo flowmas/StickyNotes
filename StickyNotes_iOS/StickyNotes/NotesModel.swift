@@ -18,7 +18,7 @@ import Foundation
     private let networking = NetworkingModel()
     var updateEntities: (() -> ())?
 
-    func updateNotes() {
+    func getNotes() {
         Task { @MainActor in
             do {
                 notes = try await networking.getNotes()

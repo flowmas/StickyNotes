@@ -45,7 +45,11 @@ struct NotesARView : View {
         .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
         // Long Press to delete a note
         .simultaneousGesture(LongPressGesture().targetedToAnyEntity().onEnded { value in
-            print("LongPress")
+            if let note = viewModel.notesModel.notes.first(where: { $0.id == value.entity.name }) {
+                var updatedNote = note
+                updatedNote.isComplete.toggle()
+                viewModel.notesModel.updateNote(note: updatedNote)
+            }
         })
         // Tap to edit a note
         .simultaneousGesture(TapGesture().targetedToAnyEntity().onEnded { value in

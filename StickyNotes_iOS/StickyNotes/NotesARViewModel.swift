@@ -62,6 +62,7 @@ typealias EntityMap = [String: Entity]
                                                  alignment: .center,
                                                  lineBreakMode: .byWordWrapping)
         
+        
         let noteColor = UIColor(red: CGFloat(note.noteColor.red),
                                 green: CGFloat(note.noteColor.green),
                                 blue: CGFloat(note.noteColor.blue),
@@ -98,6 +99,26 @@ typealias EntityMap = [String: Entity]
                 ModelComponent(mesh: textMesh, materials: [textMaterial])
             ]
         )
+        
+        // Add an extra text entity if the note is complete
+        if note.isComplete {
+            let completeEntity = Entity()
+            // 0.002 meters for text extrusion
+            let completeMesh = MeshResource.generateText("Completed",
+                                                         extrusionDepth: 0.002,
+                                                         font: UIFont.systemFont(ofSize: 0.01),
+                                                         containerFrame: CGRect(x: -0.05, y: -0.09, width: 0.1, height: 0.1),
+                                                         alignment: .center,
+                                                         lineBreakMode: .byWordWrapping)
+            let completeMaterial = SimpleMaterial(color: .systemGreen, isMetallic: false)
+            
+            textEntity.components.set(
+                [
+                    ModelComponent(mesh: completeMesh, materials: [completeMaterial])
+                ]
+            )
+            noteEntity.addChild(completeEntity)
+        }
         
         noteEntity.addChild(textEntity)
         noteEntity.name = note.id

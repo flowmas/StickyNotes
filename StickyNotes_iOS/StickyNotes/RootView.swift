@@ -17,8 +17,13 @@ struct RootView: View {
                 NotesARView(notesModel: notesModel)
             }
             Tab("List", systemImage: "pencil.and.list.clipboard") {
-                ForEach(notesModel.notes) { note in
-                    Text("\(note)")
+                NavigationStack {
+                    List {
+                        ForEach(notesModel.notes) { note in
+                            Text("Sticky Note: \(note.id)")
+                        }
+                    }
+                    .navigationTitle("Notes List")
                 }
             }
         }

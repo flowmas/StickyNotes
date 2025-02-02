@@ -20,7 +20,6 @@ app.post('/notes', (req, res) => {
         textColor,
         noteColor } = req.body;
     
-    console.log(req.body)
     const newNote = {
         id: uuidv4(),
         text,
@@ -44,25 +43,35 @@ app.get('/notes', (req, res) => {
 app.put('/notes/:id', (req, res) => {
     // Find the note with a matching ID
     const note = notes.find(noteBeingSearched => noteBeingSearched.id === req.params.id);
+    
     if (!note) {
         // If we didn't find one, return a 404 and error message
         return res.status(404).json({ message: 'Note not found' });
     }
     
-    const { name, completed } = req.body;
-    note.name = name !== undefined ? name : note.name;
-    note.completed = completed !== undefined ? Boolean(completed) : note.completed;
+    const { text,
+        isComplete,
+        position,
+        textColor,
+        noteColor } = req.body;
     
-    res.json(note);
+    note.text = text;
+    note.isComplete = isComplete;
+    note.position = position;
+    note.textColor = textColor;
+    note.noteColor = noteColor;
+    
+    res.status(200).json(note);
 });
 
 // Delete a Note by ID Endpoint
 app.delete('/notes/:id', (req, res) => {
-    const noteIndex = notes.findIndex(noteBeingSearched => noteBeingSearched.id === parseInt(req.params.id));
+    const noteIndex = notes.findIndex(noteBeingSearched => noteBeingSearched.id === req.params.id);
+    
     if (noteIndex === -1) {
         return res.status(404).json({ message: 'Note not found' });
     }
     
-    const deletedNote = notes.splice(index, 1);
+    const deletedNote = notes.splice(noteIndex, 1);
     res.json(deletedNote);
 });

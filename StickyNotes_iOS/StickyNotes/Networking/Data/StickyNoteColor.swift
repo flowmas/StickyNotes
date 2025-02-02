@@ -8,7 +8,7 @@
 import Foundation
 
 struct StickyNoteColor: Codable {
-    var red: Double
-    var green: Double
-    var blue: Double
+    var red: Float
+    var green: Float
+    var blue: Float
 }

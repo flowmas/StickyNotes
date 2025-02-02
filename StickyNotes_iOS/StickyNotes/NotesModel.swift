@@ -30,12 +30,49 @@ import Foundation
     
     func createStickyNote(arSpacePosition: SIMD3<Float>) async throws {
    
-        let newStickyNote = NewStickyNote(position: StickyNotePosition(positionX: arSpacePosition.x,
-                                                                       positionY: arSpacePosition.y,
-                                                                       positionZ: arSpacePosition.z))
-        let noteData = try JSONEncoder().encode(newStickyNote)
+        let newNewNote = NewStickyNote(position: StickyNotePosition(positionX: arSpacePosition.x,
+                                                                    positionY: arSpacePosition.y,
+                                                                    positionZ: arSpacePosition.z))
+        let newNoteData = try JSONEncoder().encode(newNewNote)
         
-        notes.append(try await networking.createNewNote(noteData: noteData))
+        notes.append(try await networking.createNewNote(noteData: newNoteData))
+    }
+    
+    func updateNote(note: StickyNote?) {
+        
+        guard let updatedNote = note else {
+            return
+        }
+        
+        guard let noteToUpdateIndex = notes.firstIndex(where: { $0.id == updatedNote.id }) else {
+            return
+        }
+        
+        Task { @MainActor in
+            do {
+                let updatedNoteData = try JSONEncoder().encode(updatedNote)
+                notes[noteToUpdateIndex] = try await networking.editNote(id: updatedNote.id, noteData: updatedNoteData)
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+        
+    }
+    
+    func deleteNote(id: String?) {
+        guard let id = id, let noteToUpdateIndex = notes.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+        
+        Task { @MainActor in
+            do {
+                try await networking.deleteNote(id: id)
+                notes.remove(at: noteToUpdateIndex)
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+        
     }
     
     fileprivate struct NewStickyNote: Codable {

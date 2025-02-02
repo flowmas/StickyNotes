@@ -56,12 +56,43 @@ struct NetworkingModel {
         return try JSONDecoder().decode(StickyNote.self, from: dataAndResponse.0)
     }
     
-    func editNote() async throws {
+    func editNote(id: String, noteData: Data) async throws -> StickyNote{
+        guard let url = baseURL?.appending(path: "/notes/\(id)") else {
+            throw NetworkingError.invalidURL
+        }
         
+        var request = URLRequest(url: url, timeoutInterval: standardTimeoutInterval)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "PUT"
+        request.httpBody = noteData
+        
+        let dataAndResponse = try await URLSession.shared.data(for: request)
+        
+        // Server is configured so that 200 is the OK status.
+        // Anything else is an error
+        guard let response = dataAndResponse.1 as? HTTPURLResponse, response.statusCode == 200 else {
+            throw NetworkingError.badServerResponse
+        }
+        
+        return try JSONDecoder().decode(StickyNote.self, from: dataAndResponse.0)
     }
     
-    func deleteNote() async throws {
+    func deleteNote(id: String) async throws {
+        guard let url = baseURL?.appending(path: "/notes/\(id)") else {
+            throw NetworkingError.invalidURL
+        }
         
+        var request = URLRequest(url: url, timeoutInterval: standardTimeoutInterval)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "DELETE"
+        
+        let dataAndResponse = try await URLSession.shared.data(for: request)
+        
+        // Server is configured so that 200 is the OK status.
+        // Anything else is an error
+        guard let response = dataAndResponse.1 as? HTTPURLResponse, response.statusCode == 200 else {
+            throw NetworkingError.badServerResponse
+        }
     }
 }
 

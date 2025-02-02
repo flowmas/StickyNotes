@@ -14,8 +14,6 @@ typealias EntityMap = [String: Entity]
 @MainActor class NotesARViewModel: ObservableObject {
     
     @Published var entityMap: EntityMap = [:]
-    @Published var noteColor = Color.pink
-    @Published var textColor = Color.white
     
     // Strong refenece, but ok since NotesModel should never be deallocated.
     var notesModel: NotesModel
@@ -64,10 +62,16 @@ typealias EntityMap = [String: Entity]
                                                  alignment: .center,
                                                  lineBreakMode: .byWordWrapping)
         
-        let noteColor = UIColor(red: note.noteColor.red, green: note.noteColor.green, blue: note.noteColor.blue, alpha: 1.0)
+        let noteColor = UIColor(red: CGFloat(note.noteColor.red),
+                                green: CGFloat(note.noteColor.green),
+                                blue: CGFloat(note.noteColor.blue),
+                                alpha: 1.0)
         let noteMaterial = SimpleMaterial(color: noteColor, isMetallic: false)
         
-        let textColor = UIColor(red: note.textColor.red, green: note.textColor.green, blue: note.textColor.blue, alpha: 1.0)
+        let textColor = UIColor(red: CGFloat(note.textColor.red),
+                                green: CGFloat(note.textColor.green),
+                                blue: CGFloat(note.textColor.blue),
+                                alpha: 1.0)
         let textMaterial = SimpleMaterial(color: textColor, isMetallic: false)
         
         // This builds the size of the tap target
@@ -96,9 +100,10 @@ typealias EntityMap = [String: Entity]
         )
         
         noteEntity.addChild(textEntity)
+        noteEntity.name = note.id
 
         // Add to the list of notes the RealityView is rendering
-        entityMap[note.id] = noteEntity
+        entityMap[noteEntity.name] = noteEntity
     }
     
     func createEntity(x: CGFloat, y: CGFloat) async throws {

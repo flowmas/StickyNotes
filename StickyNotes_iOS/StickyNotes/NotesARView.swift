@@ -9,9 +9,8 @@ import SwiftUI
 import RealityKit
 
 struct NotesARView : View {
-
-    @State private var selectedNote: Entity?
-    @State private var testText = ""
+    
+    @State private var editViewModel = EditNoteARViewModel()
     
     @StateObject private var viewModel: NotesARViewModel
     
@@ -23,56 +22,12 @@ struct NotesARView : View {
         ZStack {
             realityView
                 .zIndex(0)
-            if selectedNote != nil {
-                editNoteOverlayView
+            if editViewModel.noteBeingEditted != nil {
+                EditNoteARView(viewModel: $editViewModel, notesModel: viewModel.notesModel)
                     .zIndex(1)
                     .transition(.opacity)
             }
         }
-    }
-    
-    @ViewBuilder private var editNoteOverlayView: some View {
-        VStack {
-            
-            Spacer()
-            
-            VStack {
-                TextField("Edit Note Text", text: $testText)
-                
-                HStack(spacing: 16.0) {
-                    ColorPicker("Text Color", selection: $viewModel.textColor)
-                    ColorPicker("Note Color", selection: $viewModel.noteColor)
-                }
-                .padding(.top, 16.0)
-                
-                HStack {
-                    Button("Cancel") {
-                        withAnimation {
-                            selectedNote = nil
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                    
-                    Spacer()
-                    
-                    Button("Save") {
-                        withAnimation {
-                            selectedNote = nil
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-                .padding(.top, 32.0)
-                
-            }
-            .padding()
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 10.0))
-            
-        }
-        .padding()
-        
     }
     
     @ViewBuilder private var realityView: some View {
@@ -80,6 +35,7 @@ struct NotesARView : View {
             content.camera = .spatialTracking
             viewModel.cameraContent = content
         } update: { content in
+            content.entities.removeAll()
             for entity in viewModel.entityMap.values {
                 // This method will not duplicate the entity if it already exists
                 content.add(entity)
@@ -93,8 +49,11 @@ struct NotesARView : View {
         })
         // Tap to edit a note
         .simultaneousGesture(TapGesture().targetedToAnyEntity().onEnded { value in
-            withAnimation {
-                selectedNote = value.entity
+            // Find the associated note with the Entity's name, which is the note's ID
+            if let note = viewModel.notesModel.notes.first(where: { $0.id == value.entity.name }) {
+                withAnimation {
+                    editViewModel = EditNoteARViewModel(note: note)
+                }
             }
         })
         // Double Tap to create a new note
@@ -109,5 +68,3 @@ struct NotesARView : View {
         })
     }
 }
-
-

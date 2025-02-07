@@ -1,5 +1,5 @@
 //
-//  EditNoteARView.swift
+//  EditNoteView.swift
 //  StickyNotes
 //
 //  Created by Sam Wolf on 2/1/25.
@@ -7,10 +7,12 @@
 
 import SwiftUI
 
-struct EditNoteARView: View {
+struct EditNoteView: View {
     @Environment(\.self) var environment
+    @Environment(\.dismiss) var dismiss
 
-    @Binding var viewModel: EditNoteARViewModel
+    @Binding var viewModel: EditNoteViewModel
+    @Binding var noteFromDetails: StickyNote
     var notesModel: NotesModel
     
     var body: some View {
@@ -43,6 +45,8 @@ struct EditNoteARView: View {
                         withAnimation {
                             notesModel.deleteNote(id: viewModel.noteBeingEditted?.id)
                             viewModel.noteBeingEditted = nil
+                            // Pops the navigation stack on the NotesListView
+                            dismiss()
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -52,8 +56,11 @@ struct EditNoteARView: View {
                     
                     Button("Save") {
                         withAnimation {
-                            notesModel.updateNote(note: viewModel.updatedNote(colorEnvironment: environment))
-                            viewModel.noteBeingEditted = nil
+                            if let updatedNote = viewModel.updatedNote(colorEnvironment: environment) {
+                                notesModel.updateNote(note: updatedNote)
+                                noteFromDetails = updatedNote
+                                viewModel.noteBeingEditted = nil
+                            }
                         }
                         
                     }

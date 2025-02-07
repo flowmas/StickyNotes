@@ -16,7 +16,7 @@ struct NotesListView: View {
             List {
                 ForEach(notesModel.notes) { note in
                     NavigationLink {
-                        Text("Details")
+                        NotesDetailView(notesModel: notesModel, note: note)
                     } label: {
                         NotesRowView(note: note)
                     }

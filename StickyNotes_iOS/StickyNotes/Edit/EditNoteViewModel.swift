@@ -1,5 +1,5 @@
 //
-//  EditNoteARViewModel.swift
+//  EditNoteViewModel.swift
 //  StickyNotes
 //
 //  Created by Sam Wolf on 2/1/25.
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct EditNoteARViewModel {
+struct EditNoteViewModel {
     var noteBeingEditted: StickyNote?
     
     var text: String

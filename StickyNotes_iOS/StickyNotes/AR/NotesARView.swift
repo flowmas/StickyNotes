@@ -10,7 +10,7 @@ import RealityKit
 
 struct NotesARView : View {
     
-    @State private var editViewModel = EditNoteARViewModel()
+    @State private var editViewModel = EditNoteViewModel()
     
     @StateObject private var viewModel: NotesARViewModel
     
@@ -23,7 +23,9 @@ struct NotesARView : View {
             realityView
                 .zIndex(0)
             if editViewModel.noteBeingEditted != nil {
-                EditNoteARView(viewModel: $editViewModel, notesModel: viewModel.notesModel)
+                EditNoteView(viewModel: $editViewModel,
+                               noteFromDetails: .constant(editViewModel.noteBeingEditted!),
+                               notesModel: viewModel.notesModel)
                     .zIndex(1)
                     .transition(.opacity)
             }
@@ -56,7 +58,7 @@ struct NotesARView : View {
             // Find the associated note with the Entity's name, which is the note's ID
             if let note = viewModel.notesModel.notes.first(where: { $0.id == value.entity.name }) {
                 withAnimation {
-                    editViewModel = EditNoteARViewModel(note: note)
+                    editViewModel = EditNoteViewModel(note: note)
                 }
             }
         })

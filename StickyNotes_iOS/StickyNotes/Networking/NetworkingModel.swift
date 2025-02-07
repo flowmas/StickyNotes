@@ -8,7 +8,7 @@
 import Foundation
 
 struct NetworkingModel {
-    let localHostName = "Sams-MacBook-Pro-2.local"
+    let localHostName = "swolfMBPro2019.local"
     let serverPort = 3000
     let standardTimeoutInterval: TimeInterval = 15.0
     
